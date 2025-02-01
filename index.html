@@ -1,0 +1,153 @@
+<body></body>
+<script>
+document.title = "Pure JS sn"
+
+const canvas = document.createElement('canvas');
+canvas.width = 400;
+canvas.height = 400;
+canvas.style.width = 'min(80vw, 80svh)';
+document.body.style.margin = '0';
+document.body.style.display = 'grid';
+document.body.style.height = '100svh';
+document.body.style.placeItems = 'center';
+document.body.style.background = 'repeating-conic-gradient(from 45deg, #cf880d 0% 25%, #570101 0% 50%)';
+document.body.style.backgroundColor = '#3c5e8b';
+document.body.style.backgroundSize = 'max(10vw, 10svh) max(10vw, 10svh)';
+document.body.appendChild(canvas);
+
+const ctx = canvas.getContext("2d");
+
+const gridSize = 20;
+const cellSize = 20;
+const startX = 5;
+const startY = 5;
+const offset = 2;
+const apple = { x: 10, y: 10 };
+const tail = [];
+const sn = {
+  x: startX,
+  y: startY,
+  velocityX: 1,
+  velocityY: 0,
+  length: 1,
+};
+const snColors = ["#63c74d", "#3e8948", "#265c42", "#193c3e"];
+
+setInterval(loop, 1000 / 12);
+document.addEventListener("keydown", handleMovement);
+
+function loop() {
+  sn.x += sn.velocityX;
+  sn.y += sn.velocityY;
+
+  if (sn.x < 0) {
+    sn.x = gridSize - 1;
+  } else if (sn.x > gridSize - 1) {
+    sn.x = 0;
+  } else if (sn.y < 0) {
+    sn.y = gridSize - 1;
+  } else if (sn.y > gridSize - 1) {
+    sn.y = 0;
+  }
+
+  ctx.fillStyle = "#181425";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#ff0044";
+  ctx.fillRect(
+    apple.x * cellSize + offset / 2,
+    apple.y * cellSize + offset / 2,
+    cellSize - offset,
+    cellSize - offset
+  );
+
+  for (let i = 0; i < tail.length; i++) {
+    ctx.fillStyle =
+      snColors[Math.min(tail.length - i - 1, snColors.length - 1)];
+    ctx.fillRect(
+      tail[i].x * cellSize + offset / 2,
+      tail[i].y * cellSize + offset / 2,
+      cellSize - offset,
+      cellSize - offset
+    );
+
+    if (tail[i].x === sn.x && tail[i].y === sn.y) {
+      die();
+    }
+  }
+
+  tail.push({ x: sn.x, y: sn.y });
+
+  while (tail.length > sn.length) {
+    tail.shift();
+  }
+
+  if (sn.x === apple.x && sn.y === apple.y) {
+    sn.length++;
+    placeApple();
+  }
+}
+
+function die() {
+  sn.x = startX;
+  sn.y = startY;
+  sn.velocityX = 1;
+  sn.velocityY = 0;
+  sn.length = 1;
+  tail.splice(0, tail.length);
+}
+
+function placeApple() {
+  const freeCells = [];
+  for (let i = 0; i < gridSize; i++) {
+    for (let j = 0; j < gridSize; j++) {
+      let isOccupied = tail.some(
+        (segment) => segment.x === i && segment.y === j
+      );
+      if (!isOccupied) {
+        freeCells.push({ x: i, y: j });
+      }
+    }
+  }
+
+  const index = Math.floor(Math.random() * freeCells.length);
+  apple.x = freeCells[index].x;
+  apple.y = freeCells[index].y;
+}
+
+function handleMovement(e) {
+  switch (e.key) {
+    case "ArrowDown":
+    case "s":
+      if (sn.velocityY === -1) {
+        return;
+      }
+      sn.velocityY = 1;
+      sn.velocityX = 0;
+      break;
+    case "ArrowUp":
+    case "z":
+      if (sn.velocityY === 1) {
+        return;
+      }
+      sn.velocityY = -1;
+      sn.velocityX = 0;
+      break;
+    case "ArrowLeft":
+    case "q":
+      if (sn.velocityX === 1) {
+        return;
+      }
+      sn.velocityX = -1;
+      sn.velocityY = 0;
+      break;
+    case "ArrowRight":
+    case "d":
+      if (sn.velocityX === -1) {
+        return;
+      }
+      sn.velocityX = 1;
+      sn.velocityY = 0;
+  }
+}
+</script>
